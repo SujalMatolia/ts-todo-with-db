@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Task Manager</title>
+    <style>
+      .completed {
+        text-decoration: line-through;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Task Manager</h1>
+
+    <!-- Task Creation Form -->
+    <div id="create-task-form">
+      <h2>Create Task</h2>
+      <form id="task-form">
+        <input type="hidden" id="user-id" value="USER_ID_HERE" />
+        <input type="text" placeholder="Title" required />
+        <textarea placeholder="Description"></textarea>
+        <input type="date" />
+        <input type="text" placeholder="Priority" />
+        <button type="submit">Create Task</button>
+      </form>
+    </div>
+
+    <!-- Task List -->
+    <div id="tasks-list">
+      <h2>Tasks</h2>
+      <ul></ul>
+    </div>
+
+    <script>
+      // Task Creation Form
+      const createTaskForm = document.querySelector('#task-form');
+
+      createTaskForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const userId = document.querySelector('#user-id').value;
+        const title = event.target.elements[1].value;
+        const description = event.target.elements[2].value;
+        const dueDate = event.target.elements[3].value;
+        const priority = event.target.elements[4].value;
+
+        // Create a task object
+        const task = {
+          userId,
+          title,
+          description,
+          dueDate,
+          priority,
+          completed: false, // Set completed property to false initially
+        };
+
+        // Send an AJAX POST request to store the task
+        fetch('/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(task),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Add the task to the tasks array
+            tasks.push(data);
+
+            // Update the task list
+            updateTaskList(tasks);
+
+            // Clear the form fields
+            event.target.reset();
+          })
+          .catch((error) => {
+            console.error('Error creating task', error);
+          });
+      });
+
+      // Task List
+      const taskList = document.querySelector('#tasks-list ul');
+      let tasks = []; // Initialize an empty array for tasks
+
+      // Function to create a task list item
+      function createTaskListItem(task) {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <h3>${task.title}</h3>
+          <p>${task.description}</p>
+          <p>Due Date: ${task.dueDate}</p>
+          <p>Priority: ${task.priority}</p>
+          <button class="complete-button" data-task-id="${task.id}">Complete</button>
+          <button class="delete-button" data-task-id="${task.id}">Delete</button>
+          <button class="edit-button" data-task-id="${task.id}">Edit</button>
+        `;
+        if (task.completed) {
+          listItem.classList.add('completed');
+        }
+        return listItem;
+      }
+
+      // Function to update the task list
+      function updateTaskList(tasks) {
+        taskList.innerHTML = '';
+        tasks.forEach((task) => {
+          const listItem = createTaskListItem(task);
+          taskList.appendChild(listItem);
+        });
+      }
+
+      // Complete Task
+      taskList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('complete-button')) {
+          const taskId = event.target.dataset.taskId;
+          // Find the task in the tasks array based on the taskId
+          const task = tasks.find((task) => task.id === taskId);
+
+          // Toggle the completed property
+          task.completed = !task.completed;
+
+          // Update the task list
+          updateTaskList(tasks);
+        }
+
+        if (event.target.classList.contains('delete-button')) {
+          const taskId = event.target.dataset.taskId;
+          // Find the index of the task in the tasks array based on the taskId
+          const taskIndex = tasks.findIndex((task) => task.id === taskId);
+
+          if (taskIndex !== -1) {
+            // Remove the task from the tasks array
+            tasks.splice(taskIndex, 1);
+
+            // Update the task list
+            updateTaskList(tasks);
+          }
+        }
+
+        if (event.target.classList.contains('edit-button')) {
+          const taskId = event.target.dataset.taskId;
+          // Find the task in the tasks array based on the taskId
+          const task = tasks.find((task) => task.id === taskId);
+
+          if (task) {
+            // Populate the task creation form with the task's details
+            const taskForm = document.querySelector('#task-form');
+            taskForm.elements[1].value = task.title;
+            taskForm.elements[2].value = task.description;
+            taskForm.elements[3].value = task.dueDate;
+            taskForm.elements[4].value = task.priority;
+
+            // Remove the task from the tasks array
+            tasks.splice(tasks.indexOf(task), 1);
+
+            // Update the task list
+            updateTaskList(tasks);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

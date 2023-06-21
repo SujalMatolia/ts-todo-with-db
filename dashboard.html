@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 50px;
+    }
+    .container {
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .input-field {
+      margin-bottom: 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dashboard</h1>
+  <div class="container">
+    <div class="input-field">
+      <input type="text" placeholder="Name" id="name">
+    </div>
+    <div class="input-field">
+      <input type="email" placeholder="Email" id="email">
+    </div>
+    <div class="input-field">
+      <input type="password" placeholder="Password" id="password">
+    </div>
+    <button class="btn" onclick="saveUser()">Save</button>
+  </div>
+  <script>
+    function saveUser() {
+      var name = document.getElementById("name").value;
+      var email = document.getElementById("email").value;
+      var password = document.getElementById("password").value;
+
+      // Create an object to store user details
+      var user = {
+        name: name,
+        email: email,
+        password: password
+      };
+
+      // Send the user object to the backend
+      fetch('/saveUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Redirect to the login page
+          window.location.href = "http://localhost:3000/";
+        } else {
+          alert("Failed to save user. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Failed to save user. Please try again.");
+      });
+    }
+  </script>
+</body>
+</html>
